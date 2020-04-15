@@ -23,7 +23,7 @@ void Server::start (Config &config) {
     if (pid == 0) {
             auto worker = std::make_unique<Worker>(config.documentRootPath, config.buffSize);
             std::cout << "RUN WORKER!\n";
-            worker->run(m_Sd);
+            worker->run(mainSocket);
         }
     }
 
@@ -33,15 +33,15 @@ void Server::start (Config &config) {
     }
 }
 
-void Server::createServerSocket(uint32_t port, uint32_t queue_size) {
+void Server::createServerSocket(uint32_t port, uint32_t queueSize) {
     int sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-    struct sockaddr_in serv_addr;
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(port);
+    struct sockaddr_in servAddr;
+    servAddr.sin_family = AF_INET;
+    servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servAddr.sin_port = htons(port);
     
-    bind(sd, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
-    ::listen(sd, queue_size);
-    m_Sd = sd;
+    bind(sd, (struct sockaddr*) &servAddr, sizeof(servAddr));
+    ::listen(sd, queueSize);
+    mainSocket = sd;
 }
 

@@ -15,7 +15,7 @@
 #include "instance.hpp"
 
 struct Config {
-    const int port = 7777;
+    const int port = 80;
     const int queueSocket = 30;
     const int workersNumber = 4;
     std::string documentRootPath = "/Users/andronovdima/Desktop/Development/parkMailru/http-test-suite";
@@ -26,16 +26,19 @@ struct Config {
 class Server {
     
 public:
-    Server() : m_Sd(-1) {}
+    Server() : mainSocket(-1) {}
     
-    ~Server() { if (m_Sd > 0) close(m_Sd); }
+    ~Server() {
+        if (mainSocket > 0)
+            close(mainSocket);
+    }
     
     void start(Config& config);
     
 private:
-    int m_Sd;
+    int mainSocket;
     
-    void createServerSocket(uint32_t port, uint32_t queue_size);
+    void createServerSocket(uint32_t port, uint32_t queueSize);
 };
 
 #endif /* server_hpp */

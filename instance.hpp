@@ -10,6 +10,7 @@
 #define instance_hpp
 
 #include <iostream>
+#include <fstream>
 #include <thread>
 #include <vector>
 #include <sys/socket.h> // sockets
@@ -29,7 +30,6 @@ public:
     
 private:
     std::string docRootPath;
-    std::mutex mutex;
     const int buffSize;
     
     std::string getRequest(int clientSocket);

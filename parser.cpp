@@ -36,12 +36,12 @@ HttpRequest HTTPParser::parseHeader(std::string &query_) {
     
     Headers headers;
     while (std::getline(query, line) && line != "\r") {
-        auto name_end = line.find(':');
+        auto nameEnd = line.find(':');
 
-        auto name = line.substr(0, name_end);
+        auto name = line.substr(0, nameEnd);
         toLowerString(name);
         
-        auto value = line.substr(name_end + 2, line.length() - name_end - 3);
+        auto value = line.substr(nameEnd + 2, line.length() - nameEnd - 3);
 
         headers.emplace(name, value);
     }
@@ -82,9 +82,9 @@ std::string GetFormatDate() {
     char buf[80];
 
     auto now = time(nullptr);
-    auto time_info = gmtime(&now);
+    auto timeInfo = gmtime(&now);
 
-    strftime(buf, 80, "%a, %d %b %Y %T GMT", time_info);
+    strftime(buf, 80, "%a, %d %b %Y %T GMT", timeInfo);
 
     return buf;
 }

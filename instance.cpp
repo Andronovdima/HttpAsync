@@ -12,9 +12,9 @@ Worker::Worker(std::string &rootPath, const int buffSiz) : docRootPath(rootPath)
 
 void Worker::run(int socket) {
     signal(SIGPIPE, SIG_IGN);
-     int threads_num = 3;
+     int threadsNum = 3;
      std::vector<std::thread> threads;
-     for (int i = 0; i < threads_num; i++) {
+     for (int i = 0; i < threadsNum; i++) {
          std::thread thread([this](int l) {
              this->runThread(l);
          }, socket);
@@ -34,8 +34,8 @@ void Worker::runThread(int socket) {
     
     while(true) {
         struct sockaddr_in client;
-        socklen_t cli_len = sizeof(client);
-        int clientSocket = ::accept(socket, (struct sockaddr*)&client, &cli_len);
+        socklen_t cliLen = sizeof(client);
+        int clientSocket = ::accept(socket, (struct sockaddr*)&client, &cliLen);
 
         if (clientSocket < 0) {
             std::cerr << "Accept error" << std::endl;
@@ -130,20 +130,20 @@ bool Worker::makePath(std::string &path) {
     }
     
     // cut arguments
-    auto arguments_pos = path.find('?');
-    if (arguments_pos != std::string::npos) {
-        path = path.substr(0, arguments_pos);
+    auto argumentsPos = path.find('?');
+    if (argumentsPos != std::string::npos) {
+        path = path.substr(0, argumentsPos);
     }
     
     HTTPParser parser;
-    auto decoded_path = parser.decodeUri(path);
+    auto decodedPath = parser.decodeUri(path);
 
     bool subdir = false;
-    if (decoded_path[decoded_path.length() - 1] != '/') {
-        path =  docRootPath + decoded_path;
+    if (decodedPath[decodedPath.length() - 1] != '/') {
+        path =  docRootPath + decodedPath;
     } else {
         subdir = true;
-        path = docRootPath + decoded_path + "index.html";
+        path = docRootPath + decodedPath + "index.html";
     }
     
     std::cout << "path: " << path << std::endl;
@@ -170,6 +170,7 @@ void Worker::writeHeaders(bool isOK, std::string &uri, uintmax_t length, int cli
         } catch (std::exception &e) {
             contentType = "text/plain";
         }
+        
         headers += "Content-Type: " + contentType + "\r\n"
             + "Content-Length: " + std::to_string(length) + "\r\n\r\n";
     }
@@ -178,22 +179,22 @@ void Worker::writeHeaders(bool isOK, std::string &uri, uintmax_t length, int cli
 }
 
 void Worker::writeFile(std::string &uri, int clientSocket) {
-    __int64_t size = fs::file_size(uri);
-    auto file = open(uri.c_str(), O_RDONLY);
-    if (file == -1) {
-        std::cout << "file doesnt open\n";
+    std::string line;
+    
+    std::ifstream file(uri) ;
+    
+    if (file.is_open())
+    {
+        while (getline(file, line))
+        {
+            line = line + "\n";
+            ::send(clientSocket, line.c_str() , line.size() , 0);
+        }
+    } else {
+        std::cout << "can't open file " + uri << std::endl;
+        return;
     }
     
-    while (size != 0) {
-        auto written = sendfile(clientSocket, file, 0 , &size, nullptr, 0);
-        if (written != -1) {
-            size -= written;
-        } else {
-            std::cout << "error sendfile!" << errno << " \n";
-            close(file);
-            return;
-        }
-    }
-
-    close(file);
+    file.close();
+    return;
 }
